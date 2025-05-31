@@ -1,0 +1,30 @@
+# Flutter/Dart/Pub related files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+build/
+
+# Android related files
+android/.gradle/
+android/app/debug/
+android/app/release/
+android/build/
+
+# iOS related files
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+
+# IDE related files
+.idea/
+.vscode/
+.android/
+.ios/
+
+# Other files
+*.log
+*.dart_tool/
+*.DS_Store
