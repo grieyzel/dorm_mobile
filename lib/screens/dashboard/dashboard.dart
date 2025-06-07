@@ -235,11 +235,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-            floatingActionButton: Transform.translate(
-              offset: Offset(0, 25),
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.only(
+                  top: 30.0), // Optional: adjust spacing from bottom
               child: FloatingActionButton(
                 onPressed: () {
-                  CreateBulletinScreen();
+                  // Make sure this navigates to your screen
+                  CreateBulletinScreen().launch(context);
                 },
                 backgroundColor: scribblrPrimaryColor,
                 child: Icon(

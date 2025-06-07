@@ -328,7 +328,7 @@ class _HomeFragmentState extends State<HomeFragment> {
       "Translate",
       "Bulletin Board",
       "Failed to load events. Try again later.",
-      "No events available.",
+      "No announcement available.",
       "Failed to load bulletins. Try again later.",
       "No bulletins available.",
     ];
@@ -566,7 +566,7 @@ class _HomeFragmentState extends State<HomeFragment> {
                   .map((e) => ArticleWidget(articleResponseData: e))
                   .toList()
             else
-              Center(child: Text("No events available.")),
+              Center(child: Text("No announcement available.")),
 
             15.height,
 

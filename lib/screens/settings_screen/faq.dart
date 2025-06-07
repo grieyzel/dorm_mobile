@@ -129,7 +129,7 @@ class _FAQScreenState extends State<FAQScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Contacts"),
+        title: Text("FAQ"),
         backgroundColor: scribblrPrimaryColor,
         actions: [
           IconButton(

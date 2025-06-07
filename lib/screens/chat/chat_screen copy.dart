@@ -123,22 +123,21 @@ class _MessageState extends State<Message> {
         final groupData = json.decode(groupChatResponse.body);
         final privateData = json.decode(privateChatResponse.body);
 
-        final List<Map<String, dynamic>> existingChats = [];
-        final List<Map<String, dynamic>> placeholderChats = [];
+        final List<Map<String, dynamic>> filteredPrivateChats = [];
 
         for (var chat in privateData['chats']) {
           final dynamic user1 = chat['user1'];
           final dynamic user2 = chat['user2'];
-          final bool isPlaceholder = chat['is_placeholder'] == true;
 
           Map<String, dynamic>? otherUser;
 
-          // Determine who the "other" user is
+          // Determine which one is the other user
           if (user1 != null && user1['id'].toString() == userId) {
             otherUser = user2 != null ? Map<String, dynamic>.from(user2) : null;
           } else if (user2 != null && user2['id'].toString() == userId) {
             otherUser = user1 != null ? Map<String, dynamic>.from(user1) : null;
           } else {
+            // Placeholder chat - assign whichever user is present
             if (user1 != null && user1['id'].toString() != userId) {
               otherUser = Map<String, dynamic>.from(user1);
             } else if (user2 != null && user2['id'].toString() != userId) {
@@ -146,31 +145,11 @@ class _MessageState extends State<Message> {
             }
           }
 
-          if (otherUser == null) continue;
+          // Filter out if the otherUser is null or an admin
+          if (otherUser == null || otherUser['role'] == 'A') continue;
 
-          final bool isAdmin = otherUser['role'] == 'A';
-          final bool isStudent = userRole == 'S';
-
-          // Exclude admin placeholders if logged in as student
-          if (isStudent && isPlaceholder && isAdmin) {
-            continue;
-          }
-
-          final enrichedChat = Map<String, dynamic>.from(chat);
-          enrichedChat['other_user'] = otherUser;
-          enrichedChat['has_chat'] = !isPlaceholder;
-
-          if (isPlaceholder) {
-            placeholderChats.add(enrichedChat);
-          } else {
-            existingChats.add(enrichedChat);
-          }
+          filteredPrivateChats.add(Map<String, dynamic>.from(chat));
         }
-
-        final List<Map<String, dynamic>> mergedChats = [
-          ...existingChats,
-          ...placeholderChats
-        ];
 
         setState(() {
           groupChats =
@@ -181,7 +160,7 @@ class _MessageState extends State<Message> {
               List<Map<String, dynamic>>.from(groupData['available_groups']);
           joinRequestGroups =
               List<Map<String, dynamic>>.from(groupData['join_requests']);
-          privateChats = mergedChats;
+          privateChats = filteredPrivateChats;
           isLoading = false;
         });
       } else {
@@ -225,15 +204,18 @@ class _MessageState extends State<Message> {
 
   List<Map<String, dynamic>> getFilteredChats() {
     if (searchQuery.isEmpty) return privateChats;
-
     return privateChats.where((chat) {
-      final otherUser = chat['other_user'];
-      if (otherUser == null) return false;
+      final user1 = chat['user1'];
+      final user2 = chat['user2'];
+
+      final isUser1Current = user1['id'].toString() == userId;
+      final otherUser = isUser1Current ? user2 : user1;
 
       final fullName =
           '${otherUser['firstname']} ${otherUser['lastname']}'.toLowerCase();
 
-      return fullName.contains(searchQuery.toLowerCase());
+      return searchQuery.isEmpty ||
+          fullName.contains(searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -331,8 +313,11 @@ class _MessageState extends State<Message> {
             itemCount: filteredChats.length,
             itemBuilder: (context, index) {
               final chat = filteredChats[index];
-              final otherUser = chat['other_user'];
-              final bool hasChat = chat['has_chat'] ?? false;
+              final user1 = chat['user1'];
+              final user2 = chat['user2'];
+
+              final isUser1Current = user1['id'].toString() == userId;
+              final otherUser = isUser1Current ? user2 : user1;
 
               return GestureDetector(
                 onTap: () {
@@ -361,9 +346,7 @@ class _MessageState extends State<Message> {
                     ),
                   ),
                   subtitle: Text(
-                    hasChat
-                        ? "Unread Messages: ${chat['unread_messages']}"
-                        : "Tap to start chat",
+                    "Unread Messages: ${chat['unread_messages']}",
                     style: TextStyle(
                       color: Colors.black54,
                     ),
